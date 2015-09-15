@@ -80,7 +80,7 @@ int make_radio_read_transaction(int fd, unsigned char * response) {
 	return EXIT_SUCCESS;
 }
 
-float freqtof(unsigned char freq_hl, unsigned char freq_lh,
+float uchartofreq(unsigned char freq_hl, unsigned char freq_lh,
 		unsigned char freq_ll) {
 	int aux = 0;
 	float ret = 0;
@@ -89,7 +89,7 @@ float freqtof(unsigned char freq_hl, unsigned char freq_lh,
 	aux &= freq_lh << 16;
 	aux &= freq_ll;
 
-	ret = (float) aux / 0.61035;
+	ret = (float) aux * 0.000061035;
 
 	return ret;
 }
@@ -104,16 +104,16 @@ radio_data_t get_radio_data(int fd) {
 	if (make_radio_read_transaction(fd, response) == EXIT_FAILURE)
 		return data;
 
-	data.baudrate = (baud_rate_t) response[data_size + 0];
-	data.parity = (parity_t) response[data_size + 1];
-	data.frequencie = freqtof(response[data_size + 2], response[data_size + 3],
-			response[data_size + 4]);
-	data.rf_factor = (rf_factor_t) response[data_size + 5];
-	data.mode = (radio_mode_t) response[data_size + 6];
-	data.rf_bw = (rf_bw_t) response[data_size + 7];
-	data.id = (response[data_size + 8] << 8) & response[data_size + 9];
-	data.net_id = response[data_size + 10];
-	data.rf_power = (rf_power_t) response[data_size + 11];
+	data.baudrate = (baud_rate_t) response[header_size + 0];
+	data.parity = (parity_t) response[header_size + 1];
+	data.frequencie = uchartofreq(response[header_size + 2],
+			response[header_size + 3], response[header_size + 4]);
+	data.rf_factor = (rf_factor_t) response[header_size + 5];
+	data.mode = (radio_mode_t) response[header_size + 6];
+	data.rf_bw = (rf_bw_t) response[header_size + 7];
+	data.id = (response[header_size + 8] << 8) & response[header_size + 9];
+	data.net_id = response[header_size + 10];
+	data.rf_power = (rf_power_t) response[header_size + 11];
 
 	return data;
 }
@@ -129,12 +129,12 @@ unsigned char touchar(int in, int index) {
 	return (unsigned char) aux;
 }
 
-unsigned char * ftouchar(float frequencie) {
+unsigned char * freqtouchar(float frequencie) {
 	unsigned char *ret;
 	int aux, cont;
 
 	ret = (unsigned char *) malloc(3);
-	aux = frequencie / 1E6;
+	aux = (int) ((float) frequencie * 1E6 / 61.035);
 
 	for (cont = 0; cont < 3; ++cont)
 		ret[cont] = touchar(aux, cont);
@@ -147,9 +147,9 @@ unsigned char * make_radio_write_command(radio_data_t data) {
 
 	aux[0] = (unsigned char) data.baudrate;
 	aux[1] = (unsigned char) data.parity;
-	aux[2] = ftouchar(data.frequencie)[0];
-	aux[3] = ftouchar(data.frequencie)[1];
-	aux[4] = ftouchar(data.frequencie)[2];
+	aux[2] = freqtouchar(data.frequencie)[0];
+	aux[3] = freqtouchar(data.frequencie)[1];
+	aux[4] = freqtouchar(data.frequencie)[2];
 	aux[5] = (unsigned char) data.rf_factor;
 	aux[6] = (unsigned char) data.mode;
 	aux[7] = (unsigned char) data.rf_bw;

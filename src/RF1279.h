@@ -10,6 +10,7 @@
 
 #define data_size 		12
 #define command_size	23
+#define header_size		8
 
 typedef enum command_yy_enum {
 	cmd_write = 1, cmd_read, cmd_standard, cmd_central, cmd_node
@@ -60,11 +61,11 @@ extern unsigned char * make_radio_request(command_yy_t cmd_type,
 		unsigned char *data, int size);
 extern unsigned char * make_radio_read_command(int size);
 extern int make_radio_read_transaction(int fd, unsigned char * response);
-extern float freqtof(unsigned char freq_hl, unsigned char freq_lh,
+extern float uchartofreq(unsigned char freq_hl, unsigned char freq_lh,
 		unsigned char freq_ll);
 extern radio_data_t get_radio_data(int fd);
 extern unsigned char touchar(int in, int index);
-extern unsigned char * ftouchar(float frequencie);
+extern unsigned char * freqtouchar(float frequencie);
 extern unsigned char * make_radio_write_command(radio_data_t data);
 extern int make_radio_write_transaction(int fd, radio_data_t data);
 extern int write_radio_baudrate(int fd, baud_rate_t baudrate);
