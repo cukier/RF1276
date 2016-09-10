@@ -166,11 +166,19 @@ uint8_t RF1276_touchar(int in, int index) {
 }
 
 uint8_t *RF1276_freqtouchar(float frequencie) {
-	uint8_t *ret;
-	int aux, cont;
+	uint8_t *ret, cont;
+	uint32_t aux;
 
-	ret = (uint8_t *) malloc(3);
-	aux = (int) ((float) frequencie * 1E6 / 61.035);
+	ret = NULL;
+	ret = (uint8_t *) malloc(3 * sizeof(uint8_t));
+
+	if (ret == NULL) {
+		fprintf(stderr, "Out of memory\n");
+		return NULL;
+	}
+
+//	aux = (uint32_t) ((float) frequencie * 1E6 / 61.035);
+	aux = (uint32_t) ((float) frequencie / 61.035);
 
 	for (cont = 0; cont < 3; ++cont)
 		ret[cont] = RF1276_touchar(aux, cont);
@@ -179,7 +187,7 @@ uint8_t *RF1276_freqtouchar(float frequencie) {
 }
 
 uint8_t *RF1276_make_radio_write_command(radio_data_t *data) {
-	uint8_t *aux;
+	uint8_t *aux, *m_freq;
 
 	aux = NULL;
 	aux = (uint8_t *) malloc(RF1276_DATA_SIZE * sizeof(uint8_t));
@@ -189,11 +197,14 @@ uint8_t *RF1276_make_radio_write_command(radio_data_t *data) {
 		return NULL;
 	}
 
+	m_freq = NULL;
+	m_freq = RF1276_freqtouchar(data->frequencie);
+
 	aux[0] = (uint8_t) data->baudrate;
 	aux[1] = (uint8_t) data->parity;
-	aux[2] = RF1276_freqtouchar(data->frequencie)[0];
-	aux[3] = RF1276_freqtouchar(data->frequencie)[1];
-	aux[4] = RF1276_freqtouchar(data->frequencie)[2];
+	aux[2] = m_freq[2];
+	aux[3] = m_freq[1];
+	aux[4] = m_freq[0];
 	aux[5] = (uint8_t) data->rf_factor;
 	aux[6] = (uint8_t) data->mode;
 	aux[7] = (uint8_t) data->rf_bw;
@@ -201,6 +212,8 @@ uint8_t *RF1276_make_radio_write_command(radio_data_t *data) {
 	aux[9] = data->id & 0xFF;
 	aux[10] = data->net_id;
 	aux[11] = (uint8_t) data->rf_power;
+
+	free(m_freq);
 
 	return RF1276_make_radio_request(CMD_WRITE, aux, RF1276_DATA_SIZE);
 }
