@@ -239,8 +239,7 @@ int RF1276_make_radio_write_transaction(radio_data_t *data) {
 	}
 
 	for (cont = 0; cont < 8; ++cont)
-		if ((cont == 5 && request[cont] != 0)
-				|| (cont != 5 && response[cont] != request[cont])) {
+		if (cont != 5 && response[cont] != request[cont]) {
 			free(response);
 			fprintf(stderr, "Wrong radio response\n");
 			return EXIT_FAILURE;
