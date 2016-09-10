@@ -35,7 +35,7 @@ typedef enum mode_enum {
 } radio_mode_t;
 
 typedef enum rf_bw_enum {
-	BW_625K = 6, BW_125K, BW_256K, BW_512K
+	BW_62_5K = 6, BW_125K, BW_250K, BW_500K
 } rf_bw_t;
 
 typedef enum rf_power_enum {
