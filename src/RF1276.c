@@ -177,7 +177,6 @@ uint8_t *RF1276_freqtouchar(float frequencie) {
 		return NULL;
 	}
 
-//	aux = (uint32_t) ((float) frequencie * 1E6 / 61.035);
 	aux = (uint32_t) ((float) frequencie / 61.035);
 
 	for (cont = 0; cont < 3; ++cont)
