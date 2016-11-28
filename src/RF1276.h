@@ -54,15 +54,15 @@ typedef struct radio_data_str {
 	rf_power_t rf_power;
 } radio_data_t;
 
-extern int RF1276_get_radio_data(radio_data_t *data);
-extern int RF1276_write_radio_baudrate(baud_rate_t baudrate);
-extern int RF1276_write_radio_parity(parity_t parity);
-extern int RF1276_write_radio_frequencie(float frequencie);
-extern int RF1276_write_radio_rf_factor(rf_factor_t rf_factor);
-extern int RF1276_write_radio_mode(radio_mode_t mode);
-extern int RF1276_write_radio_rf_bw(rf_bw_t rf_bw);
-extern int RF1276_write_radio_id(uint16_t id);
-extern int RF1276_write_radio_net_id(uint8_t net_id);
-extern int RF1276_write_radio_rf_power(rf_power_t power);
+extern int RF1276_get_radio_data(int fd, radio_data_t *data);
+extern int RF1276_write_radio_baudrate(int fd, baud_rate_t baudrate);
+extern int RF1276_write_radio_parity(int fd, parity_t parity);
+extern int RF1276_write_radio_frequencie(int fd, float frequencie);
+extern int RF1276_write_radio_rf_factor(int fd, rf_factor_t rf_factor);
+extern int RF1276_write_radio_mode(int fd, radio_mode_t mode);
+extern int RF1276_write_radio_rf_bw(int fd, rf_bw_t rf_bw);
+extern int RF1276_write_radio_id(int fd, uint16_t id);
+extern int RF1276_write_radio_net_id(int fd, uint8_t net_id);
+extern int RF1276_write_radio_rf_power(int fd, rf_power_t power);
 
 #endif /* RF1279_H_ */

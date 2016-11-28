@@ -8,7 +8,7 @@
 #include "RF1276.h"
 
 #include <stdlib.h>
-#include <serial.h>
+#include "serial.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -83,13 +83,13 @@ uint8_t *RF1276_make_radio_read_command(uint16_t size) {
 	return RF1276_make_radio_request(CMD_READ, data, size);
 }
 
-int RF1276_make_radio_read_transaction(uint8_t *response) {
+int RF1276_make_radio_read_transaction(int fd, uint8_t *response) {
 	uint8_t *request;
 	uint16_t cont;
 
 	request = RF1276_make_radio_read_command(RF1276_DATA_SIZE);
 
-	if (serial_transaction(request, response, RF1276_COMMAND_SIZE,
+	if (serial_transaction(fd, request, response, RF1276_COMMAND_SIZE,
 	RF1276_COMMAND_SIZE) == 0) {
 		free(request);
 		fprintf(stderr, "Serial transaction problem\n");
@@ -122,7 +122,7 @@ float RF1276_uchartofreq(uint8_t freq_hl, uint8_t freq_lh, uint8_t freq_ll) {
 	return ret;
 }
 
-int RF1276_get_radio_data(radio_data_t *data) {
+int RF1276_get_radio_data(int fd, radio_data_t *data) {
 	uint8_t *response;
 
 	response = NULL;
@@ -133,7 +133,7 @@ int RF1276_get_radio_data(radio_data_t *data) {
 		return EXIT_FAILURE;
 	}
 
-	if (RF1276_make_radio_read_transaction(response) == EXIT_FAILURE) {
+	if (RF1276_make_radio_read_transaction(fd, response) == EXIT_FAILURE) {
 		free(response);
 		fprintf(stderr, "No radio response\n");
 		return EXIT_FAILURE;
@@ -217,7 +217,7 @@ uint8_t *RF1276_make_radio_write_command(radio_data_t *data) {
 	return RF1276_make_radio_request(CMD_WRITE, aux, RF1276_DATA_SIZE);
 }
 
-int RF1276_make_radio_write_transaction(radio_data_t *data) {
+int RF1276_make_radio_write_transaction(int fd, radio_data_t *data) {
 	uint8_t *request, *response, cont;
 
 	response = (uint8_t *) malloc(RF1276_COMMAND_SIZE * sizeof(uint8_t));
@@ -230,7 +230,7 @@ int RF1276_make_radio_write_transaction(radio_data_t *data) {
 		return EXIT_FAILURE;
 	}
 
-	if (serial_transaction(request, response, RF1276_COMMAND_SIZE,
+	if (serial_transaction(fd, request, response, RF1276_COMMAND_SIZE,
 	RF1276_COMMAND_SIZE) == 0) {
 		free(request);
 		free(response);
@@ -248,7 +248,7 @@ int RF1276_make_radio_write_transaction(radio_data_t *data) {
 	return EXIT_SUCCESS;
 }
 
-int RF1276_write_radio_baudrate(baud_rate_t baudrate) {
+int RF1276_write_radio_baudrate(int fd, baud_rate_t baudrate) {
 	radio_data_t *data;
 	int r;
 
@@ -261,7 +261,7 @@ int RF1276_write_radio_baudrate(baud_rate_t baudrate) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -271,13 +271,13 @@ int RF1276_write_radio_baudrate(baud_rate_t baudrate) {
 
 	data->baudrate = baudrate;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_parity(parity_t parity) {
+int RF1276_write_radio_parity(int fd, parity_t parity) {
 	radio_data_t *data;
 	int r;
 
@@ -290,7 +290,7 @@ int RF1276_write_radio_parity(parity_t parity) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -300,13 +300,13 @@ int RF1276_write_radio_parity(parity_t parity) {
 
 	data->parity = parity;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_frequencie(float frequencie) {
+int RF1276_write_radio_frequencie(int fd, float frequencie) {
 	radio_data_t *data;
 	int r;
 
@@ -319,7 +319,7 @@ int RF1276_write_radio_frequencie(float frequencie) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -329,13 +329,13 @@ int RF1276_write_radio_frequencie(float frequencie) {
 
 	data->frequencie = frequencie;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_rf_factor(rf_factor_t rf_factor) {
+int RF1276_write_radio_rf_factor(int fd, rf_factor_t rf_factor) {
 	radio_data_t *data;
 	int r;
 
@@ -348,7 +348,7 @@ int RF1276_write_radio_rf_factor(rf_factor_t rf_factor) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -358,13 +358,13 @@ int RF1276_write_radio_rf_factor(rf_factor_t rf_factor) {
 
 	data->rf_factor = rf_factor;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_mode(radio_mode_t mode) {
+int RF1276_write_radio_mode(int fd, radio_mode_t mode) {
 	radio_data_t *data;
 	int r;
 
@@ -377,7 +377,7 @@ int RF1276_write_radio_mode(radio_mode_t mode) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -387,13 +387,13 @@ int RF1276_write_radio_mode(radio_mode_t mode) {
 
 	data->mode = mode;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_rf_bw(rf_bw_t rf_bw) {
+int RF1276_write_radio_rf_bw(int fd, rf_bw_t rf_bw) {
 	radio_data_t *data;
 	int r;
 
@@ -406,7 +406,7 @@ int RF1276_write_radio_rf_bw(rf_bw_t rf_bw) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -416,13 +416,13 @@ int RF1276_write_radio_rf_bw(rf_bw_t rf_bw) {
 
 	data->rf_bw = rf_bw;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_id(uint16_t id) {
+int RF1276_write_radio_id(int fd, uint16_t id) {
 	radio_data_t *data;
 	int r;
 
@@ -435,7 +435,7 @@ int RF1276_write_radio_id(uint16_t id) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -445,13 +445,13 @@ int RF1276_write_radio_id(uint16_t id) {
 
 	data->id = id;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_net_id(uint8_t net_id) {
+int RF1276_write_radio_net_id(int fd, uint8_t net_id) {
 	radio_data_t *data;
 	int r;
 
@@ -464,7 +464,7 @@ int RF1276_write_radio_net_id(uint8_t net_id) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -475,13 +475,13 @@ int RF1276_write_radio_net_id(uint8_t net_id) {
 	usleep(10000);
 	data->net_id = net_id;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
 }
 
-int RF1276_write_radio_rf_power(rf_power_t power) {
+int RF1276_write_radio_rf_power(int fd, rf_power_t power) {
 	radio_data_t *data;
 	int r;
 
@@ -494,7 +494,7 @@ int RF1276_write_radio_rf_power(rf_power_t power) {
 	}
 
 	r = EXIT_FAILURE;
-	r = RF1276_get_radio_data(data);
+	r = RF1276_get_radio_data(fd, data);
 
 	if (r == EXIT_FAILURE) {
 		free(data);
@@ -504,7 +504,7 @@ int RF1276_write_radio_rf_power(rf_power_t power) {
 
 	data->rf_power = power;
 	r = EXIT_FAILURE;
-	r = RF1276_make_radio_write_transaction(data);
+	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
 
 	return r;
