@@ -7,6 +7,7 @@
 
 #include "serial.h"
 #include "RF1276.h"
+#include <stdio.h>
 
 int main(int argc, char **argv) {
 	int fd, r;
@@ -17,18 +18,21 @@ int main(int argc, char **argv) {
 	if (fd == -1)
 		return -1;
 
-	r = serial_set_port(19200, fd);
+	r = serial_set_port(9600, fd);
 
 	if (r == -1)
 		return -1;
 
 //	r = serial_transaction(fd, req, resp, 8, 25);
 	r = RF1276_get_radio_data(fd, &radio_d);
-	r = serial_close(fd);
 
 	if (r == -1)
 		return -1;
-	else
-		return 0;
 
+	r = RF1276_get_radio_rssi(fd);
+
+	printf("Rssi: %d\n", r);
+
+	serial_close(fd);
+	return 0;
 }

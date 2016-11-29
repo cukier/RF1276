@@ -12,9 +12,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define RF1276_DATA_SIZE 		12
-#define RF1276_COMMAND_SIZE		23
-#define RF1276_HEADER_SIZE		8
+#define RF1276_DATA_SIZE 			12
+#define RF1276_DATA_SIZE_RSSI		2
+#define RF1276_COMMAND_SIZE			23
+#define RF1276_COMMAND_SIZE_RSSI	13
+#define RF1276_HEADER_SIZE			8
 
 uint8_t RF1276_crc(uint8_t *data, uint16_t size) {
 	uint16_t acumulo, cont;
@@ -83,6 +85,24 @@ uint8_t *RF1276_make_radio_read_command(uint16_t size) {
 	return RF1276_make_radio_request(CMD_READ, data, size);
 }
 
+uint8_t *RF1276_make_radio_rssi_command(uint16_t size) {
+	uint16_t cont;
+	uint8_t *data;
+
+	data = NULL;
+	data = (uint8_t *) malloc(size * sizeof(uint8_t));
+
+	if (data == NULL) {
+		fprintf(stderr, "Out of memory\n");
+		return NULL;
+	}
+
+	for (cont = 0; cont < size; ++cont)
+		data[cont] = 0;
+
+	return RF1276_make_radio_request(CMD_RSSI, data, size);
+}
+
 int RF1276_make_radio_read_transaction(int fd, uint8_t *response) {
 	uint8_t *request;
 	uint16_t cont;
@@ -105,6 +125,32 @@ int RF1276_make_radio_read_transaction(int fd, uint8_t *response) {
 		}
 	}
 
+	return EXIT_SUCCESS;
+}
+
+int RF1276_make_radio_read_rssi_transaction(int fd, uint8_t *response) {
+	uint8_t *request;
+	uint16_t cont;
+
+	request = RF1276_make_radio_rssi_command(RF1276_DATA_SIZE_RSSI);
+
+	if (serial_transaction(fd, request, response, RF1276_COMMAND_SIZE_RSSI,
+	RF1276_COMMAND_SIZE_RSSI) == 0) {
+		free(request);
+		fprintf(stderr, "Serial transaction problem\n");
+		return EXIT_FAILURE;
+	}
+
+	for (cont = 0; cont < 8; ++cont) {
+
+		if (cont != 5 && response[cont] != request[cont]) {
+			free(request);
+			fprintf(stderr, "Wrong response\n");
+			return EXIT_FAILURE;
+		}
+	}
+
+	free(request);
 	return EXIT_SUCCESS;
 }
 
@@ -152,6 +198,31 @@ int RF1276_get_radio_data(int fd, radio_data_t *data) {
 	data->rf_power = (rf_power_t) response[RF1276_HEADER_SIZE + 11];
 
 	return EXIT_SUCCESS;
+}
+
+signed int RF1276_get_radio_rssi(int fd) {
+	uint8_t *m_r;
+	signed int ret;
+
+	m_r = NULL;
+	m_r = (uint8_t *) malloc(RF1276_COMMAND_SIZE_RSSI * sizeof(uint8_t));
+
+	if (m_r == NULL) {
+		fprintf(stderr, "Out of memory\n");
+		return EXIT_FAILURE;
+	}
+
+	if (RF1276_make_radio_read_rssi_transaction(fd, m_r) == EXIT_FAILURE) {
+		free(m_r);
+		fprintf(stderr, "No radio response\n");
+		return EXIT_FAILURE;
+	}
+
+	ret = 0;
+	ret = -164 + m_r[8];
+
+	free(m_r);
+	return ret;
 }
 
 uint8_t RF1276_touchar(int in, int index) {

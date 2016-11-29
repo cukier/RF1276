@@ -11,7 +11,7 @@
 #include <stdint.h>
 
 typedef enum command_yy_enum {
-	CMD_WRITE = 1, CMD_READ, CMD_STANDARD, CMD_CENTRAL, CMD_NODE
+	CMD_WRITE = 1, CMD_READ, CMD_STANDARD, CMD_CENTRAL, CMD_NODE, CMD_RSSI
 } command_yy_t;
 
 typedef enum command_xx_enum {
@@ -55,6 +55,7 @@ typedef struct radio_data_str {
 } radio_data_t;
 
 extern int RF1276_get_radio_data(int fd, radio_data_t *data);
+signed int RF1276_get_radio_rssi(int fd);
 extern int RF1276_write_radio_baudrate(int fd, baud_rate_t baudrate);
 extern int RF1276_write_radio_parity(int fd, parity_t parity);
 extern int RF1276_write_radio_frequencie(int fd, float frequencie);
