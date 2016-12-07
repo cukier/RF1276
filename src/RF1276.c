@@ -11,6 +11,7 @@
 #include "serial.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #define RF1276_DATA_SIZE 			12
 #define RF1276_DATA_SIZE_RSSI		2
@@ -110,7 +111,7 @@ int RF1276_make_radio_read_transaction(int fd, uint8_t *response) {
 	request = RF1276_make_radio_read_command(RF1276_DATA_SIZE);
 
 	if (serial_transaction(fd, request, response, RF1276_COMMAND_SIZE,
-	RF1276_COMMAND_SIZE) == 0) {
+	RF1276_COMMAND_SIZE) == -1) {
 		free(request);
 		fprintf(stderr, "Serial transaction problem\n");
 		return EXIT_FAILURE;
@@ -187,7 +188,7 @@ int RF1276_get_radio_data(int fd, radio_data_t *data) {
 
 	data->baudrate = (baud_rate_t) response[RF1276_HEADER_SIZE + 0];
 	data->parity = (parity_t) response[RF1276_HEADER_SIZE + 1];
-	data->frequencie = RF1276_uchartofreq(response[RF1276_HEADER_SIZE + 2],
+	data->frequency = RF1276_uchartofreq(response[RF1276_HEADER_SIZE + 2],
 			response[RF1276_HEADER_SIZE + 3], response[RF1276_HEADER_SIZE + 4]);
 	data->rf_factor = (rf_factor_t) response[RF1276_HEADER_SIZE + 5];
 	data->mode = (radio_mode_t) response[RF1276_HEADER_SIZE + 6];
@@ -268,7 +269,7 @@ uint8_t *RF1276_make_radio_write_command(radio_data_t *data) {
 	}
 
 	m_freq = NULL;
-	m_freq = RF1276_freqtouchar(data->frequencie);
+	m_freq = RF1276_freqtouchar(data->frequency);
 
 	aux[0] = (uint8_t) data->baudrate;
 	aux[1] = (uint8_t) data->parity;
@@ -398,7 +399,7 @@ int RF1276_write_radio_frequencie(int fd, float frequencie) {
 		return EXIT_FAILURE;
 	}
 
-	data->frequencie = frequencie;
+	data->frequency = frequencie;
 	r = EXIT_FAILURE;
 	r = RF1276_make_radio_write_transaction(fd, data);
 	free(data);
@@ -579,4 +580,144 @@ int RF1276_write_radio_rf_power(int fd, rf_power_t power) {
 	free(data);
 
 	return r;
+}
+
+int RF1276_parse_radio(radio_data_t data) {
+	char m_str[20];
+
+	printf("Frequencia: %f\n", data.frequency);
+	memset(m_str, 0, sizeof(m_str));
+
+	switch (data.rf_factor) {
+	case RF_128:
+		strcpy(m_str, "128");
+		break;
+	case RF_256:
+		strcpy(m_str, "256");
+		break;
+	case RF_512:
+		strcpy(m_str, "512");
+		break;
+	case RF_1024:
+		strcpy(m_str, "1024");
+		break;
+	case RF_2048:
+		strcpy(m_str, "2048");
+		break;
+	case RF_4096:
+		strcpy(m_str, "4096");
+		break;
+	}
+
+	printf("RF_Factor: %s chips\n", m_str);
+	memset(m_str, 0, sizeof(m_str));
+
+	switch (data.mode) {
+	case MODE_STANDARD:
+		strcpy(m_str, "STANDARD");
+		break;
+	case MODE_SLEEP:
+		strcpy(m_str, "SLEEP");
+		break;
+	case MODE_LOW_POWER:
+		strcpy(m_str, "LOW POWER");
+		break;
+	}
+
+	printf("RF_Mode: %s\n", m_str);
+	memset(m_str, 0, sizeof(m_str));
+
+	switch (data.rf_bw) {
+	case BW_125K:
+		strcpy(m_str, "125");
+		break;
+	case BW_250K:
+		strcpy(m_str, "250");
+		break;
+	case BW_500K:
+		strcpy(m_str, "500");
+		break;
+	case BW_62_5K:
+		strcpy(m_str, "62.5");
+		break;
+	}
+
+	printf("RF_BW: %s Kbs\n", m_str);
+	memset(m_str, 0, sizeof(m_str));
+	printf("Node ID: %u\n", data.id);
+	printf("Net ID: %u\n", data.net_id);
+
+	switch (data.rf_power) {
+	case P_4DBM:
+		strcpy(m_str, "1 (4dBm)");
+		break;
+	case P_7DBM:
+		strcpy(m_str, "2 (7dBm)");
+		break;
+	case P_10DBM:
+		strcpy(m_str, "3 (10dBm)");
+		break;
+	case P_13DBM:
+		strcpy(m_str, "4 (13dBm)");
+		break;
+	case P_14DBM:
+		strcpy(m_str, "5 (14dBm)");
+		break;
+	case P_17DBM:
+		strcpy(m_str, "6 (17dBm)");
+		break;
+	case P_20DBM:
+		strcpy(m_str, "7 (20dBm)");
+		break;
+	}
+
+	printf("Power: %s\n", m_str);
+	memset(m_str, 0, sizeof(m_str));
+
+	switch (data.baudrate) {
+	case B1200BPS:
+		strcpy(m_str, "1200");
+		break;
+	case B2400BPS:
+		strcpy(m_str, "2400");
+		break;
+	case B4800BPS:
+		strcpy(m_str, "4800");
+		break;
+	case B9600BPS:
+		strcpy(m_str, "9600");
+		break;
+	case B19200BPS:
+		strcpy(m_str, "19200");
+		break;
+	case B38400BPS:
+		strcpy(m_str, "38400");
+		break;
+	case B57600BPS:
+		strcpy(m_str, "57600");
+		break;
+	case B115200PS:
+		strcpy(m_str, "115200");
+		break;
+	}
+
+	printf("Baud rate: %s bps", m_str);
+	memset(m_str, 0, sizeof(m_str));
+
+	switch (data.parity) {
+	case NO_PARITY:
+		strcpy(m_str, "8N1");
+		break;
+	case ODD_PARITY:
+		strcpy(m_str, "8O1");
+		break;
+	case EVEN_PARITY:
+		strcpy(m_str, "8E1");
+		break;
+	}
+
+	printf(" %s\n", m_str);
+	memset(m_str, 0, sizeof(m_str));
+
+	return 0;
 }

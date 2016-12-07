@@ -19,7 +19,15 @@ typedef enum command_xx_enum {
 } command_xx_t;
 
 typedef enum baud_rate_enum {
-	B1200BPS = 1, B2400BPS, B4800BPS, B9600BPS, B19200BPS, B38400BPS, B57600BPS
+	B1200BPS = 1,
+	B2400BPS,
+	B4800BPS,
+	B9600BPS,
+	B19200BPS,
+	B38400BPS,
+	B57600BPS,
+	B115200PS,
+	BINVPS
 } baud_rate_t;
 
 typedef enum parity_enum {
@@ -45,7 +53,7 @@ typedef enum rf_power_enum {
 typedef struct radio_data_str {
 	baud_rate_t baudrate;
 	parity_t parity;
-	float frequencie;
+	float frequency;
 	rf_factor_t rf_factor;
 	radio_mode_t mode;
 	rf_bw_t rf_bw;
@@ -65,5 +73,6 @@ extern int RF1276_write_radio_rf_bw(int fd, rf_bw_t rf_bw);
 extern int RF1276_write_radio_id(int fd, uint16_t id);
 extern int RF1276_write_radio_net_id(int fd, uint8_t net_id);
 extern int RF1276_write_radio_rf_power(int fd, rf_power_t power);
+extern int RF1276_parse_radio(radio_data_t data);
 
 #endif /* RF1279_H_ */

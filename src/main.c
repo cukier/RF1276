@@ -7,32 +7,19 @@
 
 #include "serial.h"
 #include "RF1276.h"
+#include "radio_sniffer.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc, char **argv) {
-	int fd, r;
-	radio_data_t radio_d;
 
-	fd = serial_open_port("/dev/ttyS1");
-
-	if (fd == -1)
+	if (argc == 1) {
+		fprintf(stderr, "Definir uma porta de comunicacao\n");
 		return -1;
+	}
 
-	r = serial_set_port(9600, fd);
+	sniff(argv[1]);
 
-	if (r == -1)
-		return -1;
-
-//	r = serial_transaction(fd, req, resp, 8, 25);
-	r = RF1276_get_radio_data(fd, &radio_d);
-
-	if (r == -1)
-		return -1;
-
-	r = RF1276_get_radio_rssi(fd);
-
-	printf("Rssi: %d\n", r);
-
-	serial_close(fd);
 	return 0;
 }
