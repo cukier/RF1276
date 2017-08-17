@@ -11,6 +11,6 @@
 #include "RF1276.h"
 
 baud_rate_t discover_radio(int fd, radio_data_t *data);
-int sniff(char *porta);
+int sniff(char *porta, char *msg, uint16_t size);
 
 #endif /* SRC_RADIO_SNIFFER_H_ */

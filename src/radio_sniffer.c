@@ -12,6 +12,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifndef TRIES
+#define TRIES 3
+#endif
+
 baud_rate_t discover_radio(int fd, radio_data_t *data) {
 	baud_rate_t baud;
 	int r;
@@ -69,8 +73,8 @@ baud_rate_t discover_radio(int fd, radio_data_t *data) {
 	return baud;
 }
 
-int sniff(char *porta) {
-	int fd, r;
+int sniff(char *porta, char *msg, uint16_t size) {
+	int fd, r, cont;
 	radio_data_t radio_d;
 
 	fd = serial_open_port(porta);
@@ -85,6 +89,12 @@ int sniff(char *porta) {
 		r = RF1276_get_radio_rssi(fd);
 		printf("Rssi: %d\n", r);
 	}
+
+	cont = 0;
+
+	do {
+		r = serial_transaction(fd, (uint8_t *) msg, NULL, size, 12);
+	} while ((r == -1) && (++cont < TRIES));
 
 	serial_close(fd);
 	return 0;

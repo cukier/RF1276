@@ -6,6 +6,10 @@
 #include <termios.h>
 #include <stdlib.h>
 
+#ifndef TIME_OUT
+#define TIME_OUT 3000000UL
+#endif
+
 int serial_open_port(char *porta) {
 	int fd;
 
@@ -54,14 +58,14 @@ int serial_set_port(int baud_rate, int fd) {
 			|| (cfsetospeed(&options, speed) == -1))
 		return -1;
 
-	options.c_cflag |= (CLOCAL | CREAD);				//**************************//
-	options.c_cflag &= ~PARENB;							//							//
-	options.c_cflag &= ~CSTOPB;							//		No parity (8N1):	//
-	options.c_cflag &= ~CSIZE;							//							//
-	options.c_cflag |= CS8;								//**************************//
-	options.c_cflag &= ~CRTSCTS;						//disable hardware flow control
+	options.c_cflag |= (CLOCAL | CREAD);		//**************************//
+	options.c_cflag &= ~PARENB;					//							//
+	options.c_cflag &= ~CSTOPB;					//		No parity (8N1):	//
+	options.c_cflag &= ~CSIZE;					//							//
+	options.c_cflag |= CS8;						//**************************//
+	options.c_cflag &= ~CRTSCTS;				//disable hardware flow control
 	options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); //raw input
-	options.c_iflag &= ~(IXON | IXOFF | IXANY); 		//disable software flow control
+	options.c_iflag &= ~(IXON | IXOFF | IXANY); //disable software flow control
 
 	if (tcsetattr(fd, TCSANOW, &options) == -1)
 		return -1;
@@ -75,7 +79,7 @@ int serial_transaction(int fd, uint8_t *request, uint8_t *response,
 
 	write(fd, request, req_size);
 	tcflush(fd, TCIOFLUSH);
-	usleep(300000);
+	usleep(TIME_OUT);
 	n = read(fd, response, res_size);
 
 	return n;

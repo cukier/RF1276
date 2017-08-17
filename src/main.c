@@ -13,13 +13,14 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+	char message[8] = { 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0xC5, 0xCD };
 
 	if (argc == 1) {
 		fprintf(stderr, "Definir uma porta de comunicacao\n");
 		return -1;
 	}
 
-	sniff(argv[1]);
+	sniff(argv[1], message, 8);
 
 	return 0;
 }
